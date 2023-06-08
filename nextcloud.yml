@@ -5,14 +5,14 @@ services:
     image: linuxserver/nextcloud
     container_name: nextcloud
     environment:
-      - PUID={{PUID}}
-      - PGID={{PGID}}
-      - TZ={{TZ}}
+      - PUID=99
+      - PGID=100
+      - TZ={{TZ:-Australia/Melbourne}}
     volumes:
       - nextcloudconfig:/config
       - {{DATADRIVE}}:/data
     ports:
-      - {{PORT}}:443
+      - {{PORT:-444}}:443
     restart: unless-stopped
     depends_on:
       - nextcloud_db
