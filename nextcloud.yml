@@ -1,0 +1,56 @@
+---
+version: "1"
+services:
+  nextcloud:
+    image: linuxserver/nextcloud
+    container_name: nextcloud
+    environment:
+      - PUID={{PUID}}
+      - PGID={{PGID}}
+      - TZ={{TZ}}
+    volumes:
+      - nextcloudconfig:/config
+      - {{DATADRIVE}}:/data
+    ports:
+      - {{PORT}}:443
+    restart: unless-stopped
+    depends_on:
+      - nextcloud_db
+    networks:
+      - next-secure
+      - proxynet
+
+  nextcloud_db:
+    image: registry.hub.docker.com/library/postgres:14
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
+    volumes:
+      - nextclouddatabase:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: {{DATABASE_PASSWORD}}
+      POSTGRES_USER: nextcloud
+      POSTGRES_DB: nextcloud_db
+
+    networks:
+      - next-secure
+
+
+
+networks:
+  proxynet:
+    driver: bridge
+    external: true
+  next-secure:
+    driver: bridge
+    external: true
+
+volumes:
+  nextclouddatabase:
+    driver: local
+  nextcloudconfig:
+    driver: local
