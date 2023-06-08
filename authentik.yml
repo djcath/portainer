@@ -14,11 +14,11 @@ services:
     volumes:
       - database:/var/lib/postgresql/data
     environment:
-      POSTGRES_PASSWORD: {{PG_PASS}}
-      POSTGRES_USER: ${PG_USER:-authentik}
-      POSTGRES_DB: ${PG_DB:-authentik}
+      POSTGRES_PASSWORD: {{DB_PASS}}
+      POSTGRES_USER: authentik
+      POSTGRES_DB: authentik
     networks:
-      - {{SECURENET}}
+      - {{SECURENETWORK}}
   redis:
     image: docker.io/library/redis:alpine
     command: --save 60 1 --loglevel warning
@@ -32,7 +32,7 @@ services:
     volumes:
       - redis:/data
     networks:
-      - {{SECURENET}}
+      - {{SECURENETWORK}}
   server:
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2023.5.3}
     restart: unless-stopped
@@ -40,22 +40,22 @@ services:
     environment:
       AUTHENTIK_REDIS__HOST: redis
       AUTHENTIK_POSTGRESQL__HOST: postgresql
-      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
-      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
-      AUTHENTIK_POSTGRESQL__PASSWORD: {{PG_PASS}}
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: {{DB_PASS}}
       AUTHENTIK_SECRET_KEY: {{AUTHENTIK_SECRET_KEY}}
     volumes:
       - auth-appdata:/media
       - auth-appdata:/templates
     ports:
-      - "{{AUTHENTIK_PORT_HTTP}}:9000"
-      - "{{AUTHENTIK_PORT_HTTPS}}:9443"
+      - "{{AUTH_PORT_HTTP}}:9000"
+      - "{{AUTH_PORT_HTTPS}}:9443"
     depends_on:
       - postgresql
       - redis
     networks:
-      - {{SECURENET}}
-      - {{PROXYNET}}
+      - {{SECURENETWORK}}
+      - {{PROXYNETWORK}}
   worker:
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2023.5.3}
     restart: unless-stopped
@@ -63,8 +63,8 @@ services:
     environment:
       AUTHENTIK_REDIS__HOST: redis
       AUTHENTIK_POSTGRESQL__HOST: postgresql
-      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
-      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
       AUTHENTIK_POSTGRESQL__PASSWORD: {{PG_PASS}}
     # `user: root` and the docker socket volume are optional.
     # See more for the docker socket integration here:
@@ -82,8 +82,8 @@ services:
       - postgresql
       - redis
     networks:
-      - {{SECURENET}}
-      - {{PROXYNET}}
+      - {{SECURENETWORK}}
+      - {{PROXYNETWORK}}
 
 volumes:
   auth-database:
@@ -95,9 +95,9 @@ volumes:
 
 
 networks:
-  {{PROXYNET}}:
+  {{PROXYNETWORK}}:
     driver: bridge
     external: true
-  {{SECURENET}}:
+  {{SECURENETWORK}}:
     driver: bridge
     external: true
